@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --fondo: #f7f7f5;
+  --superficie: #ffffff;
+  --texto: #1c1917;
+  --texto-suave: #6b6157;
+  --borde: #e7e2da;
+
+  --primario: #166534;
+  --primario-suave: #dcfce7;
+  --entra: #15803d;
+  --entra-suave: #dcfce7;
+  --sale: #b91c1c;
+  --sale-suave: #fee2e2;
+  --alerta: #b45309;
+  --alerta-suave: #fef3c7;
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-borde: var(--borde);
+  --color-primario: var(--primario);
+  --color-primario-suave: var(--primario-suave);
+  --color-entra: var(--entra);
+  --color-entra-suave: var(--entra-suave);
+  --color-sale: var(--sale);
+  --color-sale-suave: var(--sale-suave);
+  --color-alerta: var(--alerta);
+  --color-alerta-suave: var(--alerta-suave);
+  --font-sans: var(--font-geist-sans);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}

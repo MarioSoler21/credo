@@ -1,0 +1,41 @@
+-- ============================================================================
+-- 20260811000011_seed_movimientos_EJEMPLO.sql
+--
+-- PLACEHOLDER: aqui van los 64 movimientos historicos reales que deben
+-- producir, una vez confirmados, los resultados de la prueba de aceptacion:
+--
+--   v_flujo_caja          = 1976.12
+--   v_cartera_por_estado  -> ACTIVO 19850.00, CONGELADO 6300.00,
+--                            INCOBRABLE 32260.00, PAGADO 0.00
+--
+-- Este archivo NO contiene datos reales todavia porque el detalle de los 64
+-- movimientos no fue proporcionado. Reemplace el bloque de ejemplo de abajo
+-- por los INSERT reales (o pida el CSV/Excel de origen para generarlos).
+--
+-- Estructura minima esperada para poder generar los INSERT automaticamente
+-- por movimiento: fecha, codigo_tipo_movimiento, codigo_prestamo O
+-- codigo_inversion O nombre_categoria, monto, confirmado.
+--
+-- Patron general de insercion (ejemplo con 2 personas y 1 prestamo):
+-- ============================================================================
+
+-- -- Ejemplo de personas
+-- insert into public.personas (codigo, nombre, es_prestatario) values
+--   ('P-001', 'Juan Perez', true);
+--
+-- -- Ejemplo de prestamo
+-- insert into public.prestamos (codigo, persona_id, fecha_desembolso, estado, plazo_meses, dia_pago)
+-- select 'PR-001', id, '2026-01-15', 'ACTIVO', 12, 15
+-- from public.personas where codigo = 'P-001';
+--
+-- -- Ejemplo de tasa vigente
+-- insert into public.tasas_prestamo (prestamo_id, tasa_mensual, vigente_desde)
+-- select id, 0.02000, '2026-01-15' from public.prestamos where codigo = 'PR-001';
+--
+-- -- Ejemplo de movimiento de desembolso (confirmado)
+-- insert into public.movimientos (fecha, tipo_movimiento_id, prestamo_id, monto, confirmado)
+-- select '2026-01-15', tm.id, pr.id, 5000.00, true
+-- from public.tipos_movimiento tm, public.prestamos pr
+-- where tm.codigo = 'DESEMBOLSO' and pr.codigo = 'PR-001';
+
+-- TODO: sustituir este archivo con los 64 movimientos reales.
