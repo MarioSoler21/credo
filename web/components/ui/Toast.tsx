@@ -34,6 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const contador = useRef(0);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- necesario para portal solo-cliente
     setMontado(true);
   }, []);
 

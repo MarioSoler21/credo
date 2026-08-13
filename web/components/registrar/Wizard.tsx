@@ -58,6 +58,7 @@ export function Wizard({ cajaActual, accionInicial, personaInicial }: Props) {
   useEffect(() => {
     if (!accion || !persona || accion.contexto === "categoria") return;
     let cancelado = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- estado de carga al iniciar el fetch async
     setResolviendo(true);
     setErrorContexto(null);
 
