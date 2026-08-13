@@ -17,7 +17,7 @@ export default async function PersonaDetallePage({ params }: Props) {
   return (
     <div className="flex flex-col gap-4 px-4 pt-6">
       <Link href="/" className="text-sm font-medium text-primario">
-        ← Mi Libreta
+        ← Resumen
       </Link>
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-lg font-bold text-texto">Editar persona</h1>

@@ -70,7 +70,7 @@ export function Wizard({ cajaActual, accionInicial, personaInicial }: Props) {
           if (accion.codigo === "DESEMBOLSO") {
             setContextoInfo({ esNuevo: !existente });
           } else if (!existente) {
-            setErrorContexto(`${persona.nombre} no tiene un préstamo activo. Usá primero «Presté plata».`);
+            setErrorContexto(`${persona.nombre} no tiene un préstamo activo. Utilice primero «Desembolso de préstamo».`);
           } else {
             setContextoInfo({ esNuevo: false, saldoActual: undefined });
           }
@@ -127,7 +127,7 @@ export function Wizard({ cajaActual, accionInicial, personaInicial }: Props) {
         nota,
         tasaMensualSiNuevo: contextoInfo?.esNuevo ? Number(tasaPorcentaje) / 100 : undefined,
       });
-      mostrar("Listo. Se registró correctamente.");
+      mostrar("Movimiento registrado correctamente.");
       router.push("/");
       router.refresh();
     } catch (e) {
@@ -186,10 +186,10 @@ export function Wizard({ cajaActual, accionInicial, personaInicial }: Props) {
 
           {!resolviendo && !errorContexto && (
             <>
-              <MoneyInput etiqueta="¿Cuánto?" valor={monto} onCambio={setMonto} autoFocus />
+              <MoneyInput etiqueta="Monto" valor={monto} onCambio={setMonto} autoFocus />
 
               <label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-texto-suave">¿Cuándo?</span>
+                <span className="text-sm font-medium text-texto-suave">Fecha</span>
                 <input
                   type="date"
                   value={fecha}
@@ -226,7 +226,7 @@ export function Wizard({ cajaActual, accionInicial, personaInicial }: Props) {
               {accion.requiereConfirmacionEscrita && (
                 <label className="flex flex-col gap-1">
                   <span className="text-sm font-medium text-texto-suave">
-                    Escribí CONFIRMAR para dar este préstamo por perdido
+                    Escriba CONFIRMAR para declarar este préstamo como incobrable
                   </span>
                   <input
                     type="text"
@@ -240,13 +240,12 @@ export function Wizard({ cajaActual, accionInicial, personaInicial }: Props) {
               {monto > 0 && (
                 <Card className={clsx(cajaResultante < 0 && "border-alerta/50 bg-alerta-suave/40")}>
                   <p className="text-sm text-texto">
-                    {accion.linea(moneda(monto))} {quienONombre ? `a ${quienONombre}` : ""}. Tu caja{" "}
-                    {cajaResultante >= cajaActual ? "sube" : "baja"} a{" "}
-                    <span className="font-bold">{moneda(cajaResultante)}</span>.
+                    {accion.linea(moneda(monto))} {quienONombre ? `— ${quienONombre}` : ""}. Saldo de caja
+                    resultante: <span className="font-bold">{moneda(cajaResultante)}</span>.
                   </p>
                   {cajaResultante < 0 && (
                     <p className="mt-1 text-sm font-medium text-alerta">
-                      Tu caja va a quedar negativa. Se puede guardar igual.
+                      El saldo de caja resultante será negativo. Puede continuar si así lo desea.
                     </p>
                   )}
                 </Card>
@@ -268,7 +267,7 @@ export function Wizard({ cajaActual, accionInicial, personaInicial }: Props) {
 function PasoQuePaso({ onElegir }: { onElegir: (a: AccionDef) => void }) {
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-base font-semibold text-texto">¿Qué pasó?</p>
+      <p className="text-base font-semibold text-texto">Tipo de movimiento</p>
       {GRUPOS.map((g) => (
         <div key={g.id} className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-texto-suave">{g.etiqueta}</p>
@@ -317,7 +316,7 @@ function PasoConQuien({
       <button onClick={onVolver} className="text-sm font-medium text-primario">
         ← Volver
       </button>
-      <p className="text-base font-semibold text-texto">¿Con quién?</p>
+      <p className="text-base font-semibold text-texto">Seleccionar persona</p>
       <input
         type="text"
         autoFocus
@@ -398,7 +397,7 @@ function PasoCategoria({
   const opciones = useMemo(() => categorias ?? [], [categorias]);
 
   if (categorias === null || opciones.length <= 1) {
-    return <p className="text-sm text-texto-suave">Un momento...</p>;
+    return <p className="text-sm text-texto-suave">Cargando categorías...</p>;
   }
 
   return (
@@ -406,7 +405,7 @@ function PasoCategoria({
       <button onClick={onVolver} className="text-sm font-medium text-primario">
         ← Volver
       </button>
-      <p className="text-base font-semibold text-texto">¿Qué categoría?</p>
+      <p className="text-base font-semibold text-texto">Categoría</p>
       <div className="flex flex-col gap-2">
         {opciones.map((c) => (
           <button

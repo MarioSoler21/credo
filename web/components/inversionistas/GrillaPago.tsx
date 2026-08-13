@@ -67,7 +67,7 @@ export function GrillaPago({ inversiones }: { inversiones: InversionParaPago[] }
       }));
       await registrarPagoInversionistas(fecha, paraEnviar);
       setConfirmando(false);
-      mostrar(`Listo. Le pagaste ${moneda(resumen.total)} en total.`);
+      mostrar(`Registro guardado. Total pagado: ${moneda(resumen.total)}.`);
       router.refresh();
     } catch (e) {
       mostrar(e instanceof Error ? e.message : "No se pudo guardar.", "error");
@@ -101,7 +101,7 @@ export function GrillaPago({ inversiones }: { inversiones: InversionParaPago[] }
                     mensual
                   </p>
                   <p className="text-sm text-texto-suave">
-                    Le toca <span className="font-medium text-texto">{moneda(i.interes_que_toca)}</span>
+                    Interés del período: <span className="font-medium text-texto">{moneda(i.interes_que_toca)}</span>
                   </p>
                 </div>
               </div>
@@ -114,7 +114,7 @@ export function GrillaPago({ inversiones }: { inversiones: InversionParaPago[] }
               />
 
               <Checkbox
-                etiqueta="No le pagué"
+                etiqueta="Sin pago"
                 checked={f.noPague}
                 onChange={(v) => actualizar(i.inversion_id, { noPague: v })}
               />
@@ -135,9 +135,9 @@ export function GrillaPago({ inversiones }: { inversiones: InversionParaPago[] }
 
       <Modal abierto={confirmando} onCerrar={() => setConfirmando(false)} titulo="Confirmar pago">
         <p className="text-base text-texto">
-          Vas a registrar {resumen.inversionistasConMovimiento} pago
-          {resumen.inversionistasConMovimiento === 1 ? "" : "s"} por{" "}
-          <span className="font-bold">{moneda(resumen.total)}</span> en total. ¿Confirmás?
+          Se registrará{resumen.inversionistasConMovimiento === 1 ? "" : "n"} {resumen.inversionistasConMovimiento}{" "}
+          pago{resumen.inversionistasConMovimiento === 1 ? "" : "s"} por un total de{" "}
+          <span className="font-bold">{moneda(resumen.total)}</span>. ¿Confirma la operación?
         </p>
         <div className="mt-5 flex gap-3">
           <Button variante="secundario" ancho="completo" onClick={() => setConfirmando(false)} disabled={guardando}>

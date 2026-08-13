@@ -69,7 +69,7 @@ export function GrillaCobro({ prestamos }: { prestamos: PrestamoParaCobro[] }) {
       }));
       await registrarCobroQuincena(fecha, paraEnviar);
       setConfirmando(false);
-      mostrar(`Listo. Tu caja subió ${moneda(resumen.total)}`);
+      mostrar(`Registro guardado. Ingreso de caja: ${moneda(resumen.total)}.`);
       router.refresh();
     } catch (e) {
       mostrar(e instanceof Error ? e.message : "No se pudo guardar.", "error");
@@ -99,7 +99,7 @@ export function GrillaCobro({ prestamos }: { prestamos: PrestamoParaCobro[] }) {
                 <div>
                   <p className="text-base font-bold text-texto">{p.persona_nombre}</p>
                   <p className="text-sm text-texto-suave">
-                    Saldo <Money valor={p.saldo_capital} coloreado={false} /> · Le toca{" "}
+                    Saldo <Money valor={p.saldo_capital} coloreado={false} /> · Interés del período:{" "}
                     <span className="font-medium text-texto">{moneda(p.interes_que_toca)}</span>
                   </p>
                 </div>
@@ -121,7 +121,7 @@ export function GrillaCobro({ prestamos }: { prestamos: PrestamoParaCobro[] }) {
               </div>
 
               <Checkbox
-                etiqueta="No pagó"
+                etiqueta="Sin pago"
                 checked={f.noPago}
                 onChange={(v) => actualizar(p.prestamo_id, { noPago: v })}
               />
@@ -138,8 +138,9 @@ export function GrillaCobro({ prestamos }: { prestamos: PrestamoParaCobro[] }) {
 
       <Modal abierto={confirmando} onCerrar={() => setConfirmando(false)} titulo="Confirmar cobro">
         <p className="text-base text-texto">
-          Vas a registrar {resumen.clientesConMovimiento} cobro{resumen.clientesConMovimiento === 1 ? "" : "s"} por{" "}
-          <span className="font-bold">{moneda(resumen.total)}</span> en total. ¿Confirmás?
+          Se registrará{resumen.clientesConMovimiento === 1 ? "" : "n"} {resumen.clientesConMovimiento} cobro
+          {resumen.clientesConMovimiento === 1 ? "" : "s"} por un total de{" "}
+          <span className="font-bold">{moneda(resumen.total)}</span>. ¿Confirma la operación?
         </p>
         <div className="mt-5 flex gap-3">
           <Button variante="secundario" ancho="completo" onClick={() => setConfirmando(false)} disabled={guardando}>

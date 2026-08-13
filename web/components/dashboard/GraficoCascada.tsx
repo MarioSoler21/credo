@@ -30,7 +30,7 @@ function construirDatos(detalle: VFlujoCajaDetalleRow[], flujoCaja: number): Fil
       color: d.monto >= 0 ? VERDE : ROJO,
     };
   });
-  filas.push({ nombre: "Tu caja hoy", base: 0, valor: Math.abs(flujoCaja), color: NEUTRO, total: flujoCaja });
+  filas.push({ nombre: "Saldo de caja", base: 0, valor: Math.abs(flujoCaja), color: NEUTRO, total: flujoCaja });
   return filas;
 }
 

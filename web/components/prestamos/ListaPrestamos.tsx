@@ -62,7 +62,7 @@ export function ListaPrestamos({ prestamos }: { prestamos: PrestamoConSaldo[] })
       </div>
 
       {filtrados.length === 0 ? (
-        <EmptyState titulo="Sin resultados" descripcion="No hay préstamos que coincidan con lo que buscás." />
+        <EmptyState titulo="Sin resultados" descripcion="No se encontraron préstamos que coincidan con la búsqueda." />
       ) : (
         <ul className="flex flex-col gap-3">
           {filtrados.map((p) => (

@@ -47,7 +47,7 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
     setGuardando(true);
     try {
       await marcarPrestamoIncobrable(prestamo.id, montoPerdida);
-      mostrar("Préstamo dado por perdido.");
+      mostrar("Préstamo declarado incobrable.");
       setModal(null);
       router.refresh();
     } catch (e) {
@@ -121,7 +121,7 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
 
       <Modal abierto={modal === "diaPago"} onCerrar={() => setModal(null)} titulo="Día de pago">
         <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-texto-suave">¿Qué día del mes paga? (1-31)</span>
+          <span className="text-sm font-medium text-texto-suave">Día de pago mensual (1-31)</span>
           <input
             type="number"
             min={1}
@@ -138,13 +138,13 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
 
       <Modal abierto={modal === "incobrable"} onCerrar={() => setModal(null)} titulo="Marcar como incobrable">
         <p className="text-sm text-texto">
-          Vas a dar por perdido lo que {persona.nombre} te debe. Esto queda registrado como una pérdida.
+          Se registrará como pérdida el saldo pendiente de {persona.nombre}.
         </p>
         <div className="mt-3">
-          <MoneyInput etiqueta="Monto que se pierde" valor={montoPerdida} onCambio={setMontoPerdida} />
+          <MoneyInput etiqueta="Monto de la pérdida" valor={montoPerdida} onCambio={setMontoPerdida} />
         </div>
         <label className="mt-3 flex flex-col gap-1">
-          <span className="text-sm font-medium text-texto-suave">Escribí CONFIRMAR para continuar</span>
+          <span className="text-sm font-medium text-texto-suave">Escriba CONFIRMAR para continuar</span>
           <input
             type="text"
             value={textoConfirmacion}
@@ -159,7 +159,7 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
           onClick={guardarIncobrable}
           disabled={guardando || textoConfirmacion.trim().toUpperCase() !== "CONFIRMAR"}
         >
-          {guardando ? "Guardando..." : "Dar por perdido"}
+          {guardando ? "Guardando..." : "Declarar incobrable"}
         </Button>
       </Modal>
     </div>

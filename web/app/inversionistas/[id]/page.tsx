@@ -52,11 +52,12 @@ export default async function InversionDetallePage({ params }: Props) {
           <span className="text-sm text-texto-suave">de saldo</span>
         </div>
         {saldo.int_pendiente > 0 && (
-          <p className="text-sm text-texto-suave">Le debés {moneda(saldo.int_pendiente)} de interés</p>
+          <p className="text-sm text-texto-suave">Interés pendiente de pago: {moneda(saldo.int_pendiente)}</p>
         )}
         {tramoVigente && (
           <p className="text-sm text-texto-suave">
-            Le toca {moneda(interesEsteMes)} este mes ({(tramoVigente.tasa_mensual * 100).toFixed(1)}% mensual)
+            Interés correspondiente al período: {moneda(interesEsteMes)} (
+            {(tramoVigente.tasa_mensual * 100).toFixed(1)}% mensual)
           </p>
         )}
         <p className="text-xs text-texto-suave">Desde el {fechaLegible(inversion.fecha_aporte)}</p>
@@ -86,7 +87,7 @@ export default async function InversionDetallePage({ params }: Props) {
           href={`/registrar?personaId=${persona.id}&accion=LE_PAGUE_INTERES`}
           className="rounded-2xl bg-primario px-4 py-3 text-center text-sm font-semibold text-white"
         >
-          Le pagué el interés
+          Registrar pago de interés
         </Link>
       </div>
 

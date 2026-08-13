@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
 const ITEMS = [
-  { href: "/", etiqueta: "Libreta", icono: "📒" },
+  { href: "/", etiqueta: "Resumen", icono: "📒" },
   { href: "/cobro", etiqueta: "Cobro", icono: "🧾" },
   { href: "/registrar", etiqueta: "Registrar", icono: "➕" },
   { href: "/prestamos", etiqueta: "Préstamos", icono: "🤝" },

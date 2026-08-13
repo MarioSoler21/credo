@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -63,8 +64,8 @@ export function EstadoCuenta({ data }: { data: EstadoCuentaPersona }) {
       {!hayCuentas && (
         <EmptyState
           icono="🧾"
-          titulo="Sin cuentas todavía"
-          descripcion="Esta persona no tiene préstamos ni inversiones registradas."
+          titulo="Sin cuentas registradas"
+          descripcion="Esta persona no tiene préstamos ni inversiones asociadas."
         />
       )}
 
@@ -93,7 +94,7 @@ function TablaPrestamo({ data }: { data: EstadoCuentaPrestamo }) {
         </span>
         <span>Capital recuperado: {moneda(saldo.capital_recuperado)}</span>
         <span>Interés cobrado: {moneda(saldo.int_cobrado)}</span>
-        <span>Interés pendiente: {moneda(saldo.int_pendiente)}</span>
+        <span>Interés pendiente: {moneda(Math.max(0, saldo.int_pendiente))}</span>
       </div>
       <TablaLineas lineas={lineas} />
     </Card>
@@ -113,7 +114,7 @@ function TablaInversion({ data }: { data: EstadoCuentaInversion }) {
           Saldo actual: <strong className="text-texto">{moneda(saldo.saldo_actual)}</strong>
         </span>
         <span>Interés pagado: {moneda(saldo.int_pagado)}</span>
-        <span>Interés pendiente: {moneda(saldo.int_pendiente)}</span>
+        <span>Interés pendiente: {moneda(Math.max(0, saldo.int_pendiente))}</span>
       </div>
       <TablaLineas lineas={lineas} />
     </Card>
@@ -122,41 +123,41 @@ function TablaInversion({ data }: { data: EstadoCuentaInversion }) {
 
 function TablaLineas({ lineas }: { lineas: LineaEstadoCuenta[] }) {
   if (lineas.length === 0) {
-    return <p className="text-sm text-texto-suave">Todavía no hay movimientos.</p>;
+    return <p className="text-sm text-texto-suave">Sin movimientos registrados.</p>;
   }
 
   return (
     <div className="-mx-4 overflow-x-auto px-4">
-      <table className="w-full min-w-[520px] text-sm">
+      <table className="w-full min-w-[560px] border-collapse text-sm">
         <thead>
-          <tr className="border-b border-borde text-left text-xs uppercase tracking-wide text-texto-suave">
-            <th className="py-1.5 pr-2 font-medium">Fecha</th>
-            <th className="py-1.5 pr-2 font-medium">Movimiento</th>
-            <th className="py-1.5 pr-2 text-right font-medium">Cargo</th>
-            <th className="py-1.5 pr-2 text-right font-medium">Abono</th>
-            <th className="py-1.5 pr-2 text-right font-medium">Interés</th>
-            <th className="py-1.5 pl-2 text-right font-medium">Saldo</th>
+          <tr className="border-b-2 border-texto/20 bg-fondo text-left text-xs font-semibold uppercase tracking-wide text-texto-suave">
+            <th className="px-2 py-2 first:pl-0">Fecha</th>
+            <th className="px-2 py-2">Movimiento</th>
+            <th className="px-2 py-2 text-right">Cargo</th>
+            <th className="px-2 py-2 text-right">Abono</th>
+            <th className="px-2 py-2 text-right">Interés</th>
+            <th className="px-2 py-2 text-right last:pr-0">Saldo</th>
           </tr>
         </thead>
         <tbody>
-          {lineas.map((l) => (
-            <tr key={l.id} className="border-b border-borde/60 last:border-0">
-              <td className="whitespace-nowrap py-1.5 pr-2 text-texto-suave">{fechaLegible(l.fecha)}</td>
-              <td className="py-1.5 pr-2 text-texto">
+          {lineas.map((l, i) => (
+            <tr key={l.id} className={clsx("border-b border-borde", i % 2 === 1 && "bg-fondo/60")}>
+              <td className="whitespace-nowrap px-2 py-2 text-texto-suave">{fechaLegible(l.fecha)}</td>
+              <td className="px-2 py-2 text-texto">
                 {etiquetaCodigoCaja(l.tipo_codigo)}
                 {l.esReverso && <span className="ml-1 text-xs italic text-texto-suave">(corrección)</span>}
                 {!l.confirmado && <span className="ml-1 text-xs italic text-alerta">(sin confirmar)</span>}
               </td>
-              <td className="whitespace-nowrap py-1.5 pr-2 text-right tabular-nums text-texto">
-                {l.cargo != null ? moneda(l.cargo) : ""}
+              <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-texto">
+                {l.cargo != null ? moneda(l.cargo) : "—"}
               </td>
-              <td className="whitespace-nowrap py-1.5 pr-2 text-right tabular-nums text-texto">
-                {l.abono != null ? moneda(l.abono) : ""}
+              <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-texto">
+                {l.abono != null ? moneda(l.abono) : "—"}
               </td>
-              <td className="whitespace-nowrap py-1.5 pr-2 text-right tabular-nums text-texto-suave">
-                {l.interes != null ? moneda(l.interes) : ""}
+              <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-texto-suave">
+                {l.interes != null ? moneda(l.interes) : "—"}
               </td>
-              <td className="whitespace-nowrap py-1.5 pl-2 text-right font-medium tabular-nums text-texto">
+              <td className="whitespace-nowrap px-2 py-2 text-right font-semibold tabular-nums text-texto last:pr-0">
                 {moneda(l.saldo)}
               </td>
             </tr>

@@ -36,7 +36,10 @@ export function ListaInversiones({ inversiones }: { inversiones: InversionConSal
       />
 
       {filtradas.length === 0 ? (
-        <EmptyState titulo="Sin inversionistas" descripcion="Cuando alguien te aporte plata, va a aparecer aquí." />
+        <EmptyState
+          titulo="Sin inversionistas"
+          descripcion="Los inversionistas registrados aparecerán en este listado."
+        />
       ) : (
         <ul className="flex flex-col gap-3">
           {filtradas.map((i) => (

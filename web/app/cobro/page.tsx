@@ -14,7 +14,7 @@ export default async function CobroPage() {
         <EmptyState
           icono="🧾"
           titulo="No hay préstamos para cobrar"
-          descripcion="Cuando tengas préstamos activos con una tasa definida, aparecerán aquí."
+          descripcion="Los préstamos activos con una tasa definida aparecerán en este listado."
         />
       ) : (
         <GrillaCobro prestamos={prestamos} />

@@ -52,7 +52,7 @@ export default async function Libreta() {
 
   return (
     <div className="flex flex-col gap-5 px-4 pt-6">
-      <h1 className="text-lg font-bold text-texto">Mi Libreta</h1>
+      <h1 className="text-lg font-bold text-texto">Resumen general</h1>
 
       {/* Bloque A - Efectivo */}
       <Card className="flex flex-col gap-3">
@@ -60,8 +60,8 @@ export default async function Libreta() {
           <p className="text-sm text-texto-suave">Efectivo en caja</p>
           <p className="text-4xl font-extrabold tabular-nums text-texto">{moneda(flujoCaja.flujo_caja)}</p>
           <div className="mt-1.5 flex gap-4 text-sm">
-            <span className="text-entra">Entró {moneda(flujoCaja.entradas)}</span>
-            <span className="text-sale">Salió {moneda(flujoCaja.salidas)}</span>
+            <span className="text-entra">Ingresos {moneda(flujoCaja.entradas)}</span>
+            <span className="text-sale">Egresos {moneda(flujoCaja.salidas)}</span>
           </div>
         </div>
         <GraficoCascada detalle={flujoCajaDetalle} flujoCaja={flujoCaja.flujo_caja} />
@@ -71,7 +71,7 @@ export default async function Libreta() {
       <div className="grid grid-cols-1 gap-3">
         <Card className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-texto-suave">Tu plata prestada</p>
+            <p className="text-sm text-texto-suave">Cartera de préstamos</p>
             <p className="text-2xl font-bold tabular-nums text-texto">{moneda(carteraActiva)}</p>
           </div>
           <Badge tono="verde">Activa</Badge>
@@ -81,24 +81,24 @@ export default async function Libreta() {
           className={porcentajeProblemas >= 30 ? "border-sale/40 bg-sale-suave/40" : undefined}
         >
           <div className="flex items-center justify-between">
-            <p className="text-sm text-texto-suave">Plata en problemas</p>
+            <p className="text-sm text-texto-suave">Cartera en riesgo</p>
             <Badge tono={porcentajeProblemas >= 30 ? "rojo" : "ambar"}>{porcentajeProblemas.toFixed(1)}%</Badge>
           </div>
           <p className="text-2xl font-bold tabular-nums text-texto">{moneda(carteraEnProblemas)}</p>
           {porcentajeProblemas >= 30 && (
             <p className="mt-1 text-sm font-medium text-sale">
-              De cada L100 que prestaste, L{porcentajeProblemas.toFixed(0)} están en problemas.
+              El {porcentajeProblemas.toFixed(0)}% de la cartera activa presenta riesgo de cobro.
             </p>
           )}
         </Card>
 
         <Card className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-texto-suave">Le debés a inversionistas</p>
+            <p className="text-sm text-texto-suave">Obligaciones con inversionistas</p>
             <p className="text-2xl font-bold tabular-nums text-texto">{moneda(inversionistas.saldoTotal)}</p>
             {inversionistas.interesPendienteTotal > 0 && (
               <p className="text-sm text-texto-suave">
-                + {moneda(inversionistas.interesPendienteTotal)} de interés
+                + {moneda(inversionistas.interesPendienteTotal)} de interés pendiente
               </p>
             )}
           </div>
@@ -108,7 +108,7 @@ export default async function Libreta() {
 
       {/* Bloque C - Resultado */}
       <Card className="flex flex-col gap-3">
-        <p className="text-sm font-semibold text-texto">¿Estás ganando o perdiendo?</p>
+        <p className="text-sm font-semibold text-texto">Estado de resultados</p>
         <ul className="flex flex-col gap-1.5 text-sm">
           {lineasResultado.map((linea) => (
             <li key={linea.concepto} className="flex items-center justify-between">
@@ -123,16 +123,20 @@ export default async function Libreta() {
         </div>
         <p className="text-sm text-texto-suave">
           {resultado < 0
-            ? `Estás perdiendo ${moneda(Math.abs(resultado))} porque los gastos y lo que le debés a los inversionistas superan lo que cobrás.`
-            : `Estás ganando ${moneda(resultado)} porque lo que cobrás supera los gastos y lo que le debés a los inversionistas.`}
+            ? `La pérdida del período es de ${moneda(Math.abs(resultado))}: los gastos y las obligaciones con inversionistas superan los ingresos.`
+            : `La utilidad del período es de ${moneda(resultado)}: los ingresos superan los gastos y las obligaciones con inversionistas.`}
         </p>
       </Card>
 
       {/* Bloque D - Quien te debe */}
       <Card className="flex flex-col gap-3">
-        <p className="text-sm font-semibold text-texto">Quién te debe</p>
+        <p className="text-sm font-semibold text-texto">Cartera en mora</p>
         {mora.length === 0 ? (
-          <EmptyState icono="✅" titulo="Nadie está atrasado" descripcion="Todos tus préstamos activos están al día." />
+          <EmptyState
+            icono="✅"
+            titulo="Sin registros en mora"
+            descripcion="Todos los préstamos activos se encuentran al día."
+          />
         ) : (
           <ul className="flex flex-col gap-3">
             {mora.map((m) => (
@@ -157,7 +161,7 @@ export default async function Libreta() {
 
       {/* Bloque E - Como va el año */}
       <Card className="flex flex-col gap-4">
-        <p className="text-sm font-semibold text-texto">Cómo va el año</p>
+        <p className="text-sm font-semibold text-texto">Desempeño del período</p>
         <GraficoFlujoMensual datos={flujoMensual} />
         <GraficoDonaCartera datos={carteraPorEstado} />
       </Card>
@@ -186,7 +190,7 @@ export default async function Libreta() {
           {pendientes.personasSinNombre.length > 0 && (
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-texto-suave">
-                Personas sin nombre real
+                Personas sin nombre registrado
               </p>
               <ul className="flex flex-col gap-1.5">
                 {pendientes.personasSinNombre.map((p) => (

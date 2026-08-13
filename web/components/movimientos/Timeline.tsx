@@ -74,7 +74,7 @@ function ModalCorregir({ movimiento, onCerrar }: { movimiento: MovimientoConCodi
     setGuardando(true);
     try {
       await corregirMovimiento(movimiento.id);
-      mostrar("Corregido. Quedó el rastro de lo que pasó.");
+      mostrar("Movimiento corregido. El historial se mantiene completo.");
       onCerrar();
       router.refresh();
     } catch (e) {
@@ -87,14 +87,15 @@ function ModalCorregir({ movimiento, onCerrar }: { movimiento: MovimientoConCodi
   return (
     <Modal abierto={!!movimiento} onCerrar={onCerrar} titulo="Corregir">
       <p className="text-sm text-texto">
-        Esto no borra el registro. Crea uno contrario que lo anula, para que quede el rastro de qué pasó.
+        Esta acción no elimina el registro original. Se creará un movimiento de reversión para conservar el
+        historial completo.
       </p>
       <div className="mt-5 flex gap-3">
         <Button variante="secundario" ancho="completo" onClick={onCerrar} disabled={guardando}>
           Cancelar
         </Button>
         <Button ancho="completo" onClick={confirmar} disabled={guardando}>
-          {guardando ? "..." : "Sí, corregir"}
+          {guardando ? "..." : "Confirmar corrección"}
         </Button>
       </div>
     </Modal>

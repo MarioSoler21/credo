@@ -14,7 +14,7 @@ export default async function PagoInversionistasPage() {
         <EmptyState
           icono="🏦"
           titulo="No hay inversionistas para pagar"
-          descripcion="Cuando tengas inversiones vigentes con una tasa definida, aparecerán aquí."
+          descripcion="Las inversiones vigentes con una tasa definida aparecerán en este listado."
         />
       ) : (
         <GrillaPago inversiones={inversiones} />
