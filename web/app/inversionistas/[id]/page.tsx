@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getInversionDetalle } from "@/lib/queries";
+import { getInversionDetalle, getPresupuestoInversion } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Money } from "@/components/ui/Money";
 import { Timeline } from "@/components/movimientos/Timeline";
+import { CardPresupuesto } from "@/components/finanzas/TablaPresupuesto";
 import { moneda, fechaLegible } from "@/lib/formato";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ export default async function InversionDetallePage({ params }: Props) {
   const { inversion, persona, saldo, tramos, movimientos } = detalle;
   const tramoVigente = tramos.find((t) => t.vigente_hasta === null);
   const interesEsteMes = tramoVigente ? tramoVigente.monto * tramoVigente.tasa_mensual : 0;
+  const periodos = await getPresupuestoInversion(Number(id));
 
   return (
     <div className="flex flex-col gap-4 px-4 pt-6">
@@ -90,6 +92,8 @@ export default async function InversionDetallePage({ params }: Props) {
           Registrar pago de interés
         </Link>
       </div>
+
+      <CardPresupuesto periodos={periodos} mostrarCapital={false} />
 
       <div>
         <p className="mb-2 text-sm font-semibold text-texto">Historial</p>

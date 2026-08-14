@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPrestamoDetalle } from "@/lib/queries";
+import { getPrestamoDetalle, getPresupuestoPrestamo } from "@/lib/queries";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Money } from "@/components/ui/Money";
 import { Timeline } from "@/components/movimientos/Timeline";
 import { AccionesPrestamo } from "@/components/prestamos/AccionesPrestamo";
+import { CardPresupuesto } from "@/components/finanzas/TablaPresupuesto";
 import { fechaLegible } from "@/lib/formato";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ export default async function PrestamoDetallePage({ params }: Props) {
 
   const { prestamo, persona, saldo, tasas, movimientos, mora } = detalle;
   const tasaVigente = tasas.find((t) => t.vigente_hasta === null);
+  const periodos = await getPresupuestoPrestamo(Number(id));
 
   return (
     <div className="flex flex-col gap-4 px-4 pt-6">
@@ -65,6 +67,8 @@ export default async function PrestamoDetallePage({ params }: Props) {
       </Card>
 
       <AccionesPrestamo prestamo={prestamo} persona={persona} saldo={saldo} tasaVigente={tasaVigente?.tasa_mensual ?? null} />
+
+      <CardPresupuesto periodos={periodos} mostrarCapital={prestamo.plazo_meses != null} />
 
       <div>
         <p className="mb-2 text-sm font-semibold text-texto">Historial</p>

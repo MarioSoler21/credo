@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { generarCortes, esCorteDeInteres, sumarMeses } from "./presupuesto";
 import type {
   PersonaRow,
   PrestamoRow,
@@ -441,6 +442,99 @@ export async function buscarPrestamoActivoDePersona(personaId: number): Promise<
 }
 
 // ---------------------------------------------------------------------------
+// Presupuesto vs. real (caja presupuestada y flujo de efectivo real, por
+// prestamo/inversion). Cortes quincenales fijos: dia 15 (interes) y ultimo
+// dia del mes (capital), igual que el ciclo real de la cooperativa.
+// ---------------------------------------------------------------------------
+
+export interface PeriodoPresupuesto {
+  fecha: string;
+  esFuturo: boolean;
+  tasaMensual: number;
+  saldoCapitalInicio: number;
+  interesPresupuestado: number;
+  capitalPresupuestado: number;
+  interesReal: number;
+  capitalReal: number;
+}
+
+/** Tasa vigente en `fecha` segun el historial de tasas (ordenado por vigente_desde asc). */
+function tasaVigenteEn(fecha: string, tasas: TasaPrestamoRow[] | TramoInversionRow[]): number {
+  let vigente = 0;
+  for (const t of tasas) {
+    if (t.vigente_desde <= fecha && (t.vigente_hasta === null || t.vigente_hasta >= fecha)) {
+      vigente = t.tasa_mensual;
+    }
+  }
+  return vigente;
+}
+
+/** Saldo de capital justo antes de `fecha` (estrictamente anterior), segun el saldo corrido de `lineas`. */
+function saldoCapitalAntesDe(fecha: string, lineas: LineaEstadoCuenta[]): number {
+  let saldo = 0;
+  for (const l of lineas) {
+    if (l.fecha >= fecha) break;
+    saldo = l.saldo;
+  }
+  return saldo;
+}
+
+const HOY = () => new Date().toISOString().slice(0, 10);
+
+export async function getPresupuestoPrestamo(id: number): Promise<PeriodoPresupuesto[]> {
+  const prestamoRes = await supabase.from("prestamos").select("*").eq("id", id).single();
+  const prestamo = lanzarSiError(prestamoRes);
+
+  const [tasasRes, movimientosRes, codigos] = await Promise.all([
+    supabase.from("tasas_prestamo").select("*").eq("prestamo_id", id).order("vigente_desde", { ascending: true }),
+    supabase.from("movimientos").select("*").eq("prestamo_id", id),
+    mapaCodigosTipoMovimiento(),
+  ]);
+  const tasas = lanzarSiError(tasasRes) ?? [];
+  const movimientos: MovimientoConCodigo[] = (lanzarSiError(movimientosRes) ?? []).map((m) => ({
+    ...m,
+    tipo_codigo: codigos.get(m.tipo_movimiento_id) ?? "",
+  }));
+  const lineas = construirLineas(movimientos, CARGO_PRESTAMO, ABONO_PRESTAMO, INTERES_PRESTAMO);
+
+  const hoy = HOY();
+  const desde = prestamo.fecha_desembolso < sumarMeses(hoy, -6) ? sumarMeses(hoy, -6) : prestamo.fecha_desembolso;
+  const hasta = sumarMeses(hoy, 3);
+  const montoInicial = lineas[0]?.cargo ?? 0;
+  const cortes = generarCortes(desde, hasta);
+
+  return cortes.map((fecha, i) => {
+    const previa = cortes[i - 1] ?? "0000-00-00";
+    const esFuturo = fecha > hoy;
+    const tasaMensual = tasaVigenteEn(fecha, tasas);
+    const saldoCapitalInicio = saldoCapitalAntesDe(fecha, lineas);
+    const enPeriodo = (l: LineaEstadoCuenta) => l.fecha > previa && l.fecha <= fecha;
+
+    return {
+      fecha,
+      esFuturo,
+      tasaMensual,
+      saldoCapitalInicio,
+      interesPresupuestado: esCorteDeInteres(fecha) ? Math.round(saldoCapitalInicio * tasaMensual * 100) / 100 : 0,
+      capitalPresupuestado:
+        !esCorteDeInteres(fecha) && prestamo.plazo_meses
+          ? Math.round((montoInicial / prestamo.plazo_meses) * 100) / 100
+          : 0,
+      interesReal: esFuturo
+        ? 0
+        : lineas
+            .filter((l) => l.tipo_codigo === "INTERES_COBRADO" && l.confirmado && enPeriodo(l))
+            .reduce((acc, l) => acc + (l.interes ?? 0), 0),
+      capitalReal: esFuturo
+        ? 0
+        : lineas
+            .filter((l) => l.tipo_codigo === "ABONO_CAPITAL" && l.confirmado && enPeriodo(l))
+            .reduce((acc, l) => acc + (l.abono ?? 0), 0),
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Inversiones
 // ---------------------------------------------------------------------------
 
@@ -526,6 +620,57 @@ export async function buscarInversionVigenteDePersona(personaId: number): Promis
     .limit(1)
     .maybeSingle();
   return lanzarSiError(res);
+}
+
+/** Suma monto*tasa de todos los tramos vigentes en `fecha` (una inversion puede tener varios a la vez). */
+function interesPresupuestadoInversion(fecha: string, tramos: TramoInversionRow[]): number {
+  const total = tramos
+    .filter((t) => t.vigente_desde <= fecha && (t.vigente_hasta === null || t.vigente_hasta >= fecha))
+    .reduce((acc, t) => acc + t.monto * t.tasa_mensual, 0);
+  return Math.round(total * 100) / 100;
+}
+
+export async function getPresupuestoInversion(id: number): Promise<PeriodoPresupuesto[]> {
+  const inversionRes = await supabase.from("inversiones").select("*").eq("id", id).single();
+  const inversion = lanzarSiError(inversionRes);
+
+  const [tramosRes, movimientosRes, codigos] = await Promise.all([
+    supabase.from("tramos_inversion").select("*").eq("inversion_id", id).order("vigente_desde", { ascending: true }),
+    supabase.from("movimientos").select("*").eq("inversion_id", id),
+    mapaCodigosTipoMovimiento(),
+  ]);
+  const tramos = lanzarSiError(tramosRes) ?? [];
+  const movimientos: MovimientoConCodigo[] = (lanzarSiError(movimientosRes) ?? []).map((m) => ({
+    ...m,
+    tipo_codigo: codigos.get(m.tipo_movimiento_id) ?? "",
+  }));
+  const lineas = construirLineas(movimientos, CARGO_INVERSION, ABONO_INVERSION, INTERES_INVERSION);
+
+  const hoy = HOY();
+  const desde = inversion.fecha_aporte < sumarMeses(hoy, -6) ? sumarMeses(hoy, -6) : inversion.fecha_aporte;
+  const hasta = sumarMeses(hoy, 3);
+  const cortes = generarCortes(desde, hasta);
+
+  return cortes.map((fecha, i) => {
+    const previa = cortes[i - 1] ?? "0000-00-00";
+    const esFuturo = fecha > hoy;
+    const enPeriodo = (l: LineaEstadoCuenta) => l.fecha > previa && l.fecha <= fecha;
+
+    return {
+      fecha,
+      esFuturo,
+      tasaMensual: 0,
+      saldoCapitalInicio: saldoCapitalAntesDe(fecha, lineas),
+      interesPresupuestado: esCorteDeInteres(fecha) ? interesPresupuestadoInversion(fecha, tramos) : 0,
+      capitalPresupuestado: 0,
+      interesReal: esFuturo
+        ? 0
+        : lineas
+            .filter((l) => l.tipo_codigo === "INTERES_PAGADO_INV" && l.confirmado && enPeriodo(l))
+            .reduce((acc, l) => acc + (l.interes ?? 0), 0),
+      capitalReal: 0,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------
