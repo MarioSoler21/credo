@@ -104,6 +104,15 @@ export const ACCIONES: AccionDef[] = [
     linea: (m) => `Interés pendiente de pago: ${m}`,
   },
   {
+    id: "PAGUE_DIVIDENDO",
+    etiqueta: "Pago de dividendo",
+    grupo: "INVERSIONISTAS",
+    codigo: "DIVIDENDO_PAGADO_INV",
+    contexto: "inversion",
+    signoCaja: -1,
+    linea: (m) => `Dividendo pagado: ${m}`,
+  },
+  {
     id: "BANCO_PAGO_INTERES",
     etiqueta: "Interés bancario recibido",
     grupo: "OTROS",
@@ -167,6 +176,7 @@ const ETIQUETA_CODIGO_CAJA: Record<string, string> = {
   DEVOLUCION_INVERSION: "Devoluciones a inversionistas",
   INTERES_PAGADO_INV: "Interés pagado a inversionistas",
   INTERES_PEND_INV: "Interés pendiente a inversionista",
+  DIVIDENDO_PAGADO_INV: "Dividendo pagado a inversionistas",
   INTERES_BANCARIO: "Interés del banco",
   GASTO_OPERATIVO: "Gastos operativos",
   OTRO_EGRESO: "Otros egresos",

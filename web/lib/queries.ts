@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { generarCortes, esCorteDeInteres, sumarMeses } from "./presupuesto";
+import { generarCortes, esCorteDeCapital, sumarMeses } from "./presupuesto";
 import type {
   PersonaRow,
   PrestamoRow,
@@ -443,8 +443,10 @@ export async function buscarPrestamoActivoDePersona(personaId: number): Promise<
 
 // ---------------------------------------------------------------------------
 // Presupuesto vs. real (caja presupuestada y flujo de efectivo real, por
-// prestamo/inversion). Cortes quincenales fijos: dia 15 (interes) y ultimo
-// dia del mes (capital), igual que el ciclo real de la cooperativa.
+// prestamo/inversion). Cortes quincenales fijos: dia 15 y ultimo dia del mes,
+// igual que el ciclo real de la cooperativa. El interes se cobra en AMBOS
+// cortes a la mitad de la tasa mensual; el capital solo se amortiza en el
+// corte de fin de mes.
 // ---------------------------------------------------------------------------
 
 export interface PeriodoPresupuesto {
@@ -515,9 +517,9 @@ export async function getPresupuestoPrestamo(id: number): Promise<PeriodoPresupu
       esFuturo,
       tasaMensual,
       saldoCapitalInicio,
-      interesPresupuestado: esCorteDeInteres(fecha) ? Math.round(saldoCapitalInicio * tasaMensual * 100) / 100 : 0,
+      interesPresupuestado: Math.round(saldoCapitalInicio * (tasaMensual / 2) * 100) / 100,
       capitalPresupuestado:
-        !esCorteDeInteres(fecha) && prestamo.plazo_meses
+        esCorteDeCapital(fecha) && prestamo.plazo_meses
           ? Math.round((montoInicial / prestamo.plazo_meses) * 100) / 100
           : 0,
       interesReal: esFuturo
@@ -622,11 +624,11 @@ export async function buscarInversionVigenteDePersona(personaId: number): Promis
   return lanzarSiError(res);
 }
 
-/** Suma monto*tasa de todos los tramos vigentes en `fecha` (una inversion puede tener varios a la vez). */
+/** Suma monto*(tasa/2) de todos los tramos vigentes en `fecha` (una inversion puede tener varios a la vez; cada corte quincenal cobra la mitad de la tasa mensual). */
 function interesPresupuestadoInversion(fecha: string, tramos: TramoInversionRow[]): number {
   const total = tramos
     .filter((t) => t.vigente_desde <= fecha && (t.vigente_hasta === null || t.vigente_hasta >= fecha))
-    .reduce((acc, t) => acc + t.monto * t.tasa_mensual, 0);
+    .reduce((acc, t) => acc + t.monto * (t.tasa_mensual / 2), 0);
   return Math.round(total * 100) / 100;
 }
 
@@ -661,7 +663,7 @@ export async function getPresupuestoInversion(id: number): Promise<PeriodoPresup
       esFuturo,
       tasaMensual: 0,
       saldoCapitalInicio: saldoCapitalAntesDe(fecha, lineas),
-      interesPresupuestado: esCorteDeInteres(fecha) ? interesPresupuestadoInversion(fecha, tramos) : 0,
+      interesPresupuestado: interesPresupuestadoInversion(fecha, tramos),
       capitalPresupuestado: 0,
       interesReal: esFuturo
         ? 0
@@ -691,7 +693,8 @@ export async function getPrestamosParaCobro(): Promise<PrestamoParaCobro[]> {
     .filter((p) => p.tasa_vigente !== null)
     .map((p) => {
       const tasa = p.tasa_vigente ?? 0;
-      const interes = Math.round(p.saldo.saldo_capital * tasa * 100) / 100;
+      // Cobro quincenal: la mitad de la tasa mensual por cada corte.
+      const interes = Math.round(p.saldo.saldo_capital * (tasa / 2) * 100) / 100;
       return {
         prestamo_id: p.id,
         persona_nombre: p.persona_nombre,
@@ -746,7 +749,8 @@ export async function getInversionesParaPago(): Promise<InversionParaPago[]> {
   return inversiones
     .map((i) => {
       const tramos = tramosPorInversion.get(i.id) ?? [];
-      const interes = Math.round(tramos.reduce((acc, t) => acc + t.monto * t.tasa_mensual, 0) * 100) / 100;
+      // Pago quincenal: la mitad de la tasa mensual por cada corte.
+      const interes = Math.round(tramos.reduce((acc, t) => acc + t.monto * (t.tasa_mensual / 2), 0) * 100) / 100;
       return {
         inversion_id: i.id,
         persona_nombre: nombres.get(i.persona_id) ?? "",
@@ -767,4 +771,29 @@ export async function getCategorias(nombres?: string[]) {
   if (nombres?.length) query = query.in("nombre", nombres);
   const res = await query;
   return lanzarSiError(res) ?? [];
+}
+
+export interface MovimientoCategoria extends MovimientoConCodigo {
+  categoria_nombre: string;
+}
+
+/** Detalle (no solo el total agregado) de todos los movimientos ligados a una categoria: gastos e ingresos generales. */
+export async function getGastosDetalle(): Promise<MovimientoCategoria[]> {
+  const [movimientosRes, categoriasRes, codigos] = await Promise.all([
+    supabase
+      .from("movimientos")
+      .select("*")
+      .not("categoria_id", "is", null)
+      .order("fecha", { ascending: false })
+      .order("id", { ascending: false }),
+    supabase.from("categorias").select("id, nombre"),
+    mapaCodigosTipoMovimiento(),
+  ]);
+  const nombrePorCategoria = new Map((lanzarSiError(categoriasRes) ?? []).map((c) => [c.id, c.nombre]));
+
+  return (lanzarSiError(movimientosRes) ?? []).map((m) => ({
+    ...m,
+    tipo_codigo: codigos.get(m.tipo_movimiento_id) ?? "",
+    categoria_nombre: (m.categoria_id && nombrePorCategoria.get(m.categoria_id)) || "Sin categoría",
+  }));
 }

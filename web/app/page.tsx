@@ -112,7 +112,13 @@ export default async function Libreta() {
         <ul className="flex flex-col gap-1.5 text-sm">
           {lineasResultado.map((linea) => (
             <li key={linea.concepto} className="flex items-center justify-between">
-              <span className="text-texto-suave">{etiquetaConcepto(linea.concepto)}</span>
+              {linea.concepto === "GASTOS" ? (
+                <Link href="/gastos" className="text-primario underline">
+                  {etiquetaConcepto(linea.concepto)}
+                </Link>
+              ) : (
+                <span className="text-texto-suave">{etiquetaConcepto(linea.concepto)}</span>
+              )}
               <Money valor={linea.monto} className="font-medium" />
             </li>
           ))}

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { useToast } from "@/components/ui/Toast";
-import { cambiarTasaPrestamo, marcarPrestamoIncobrable, actualizarDiaPago } from "@/lib/actions";
+import { cambiarTasaPrestamo, marcarPrestamoIncobrable, actualizarDiaPago, cambiarEstadoPrestamo } from "@/lib/actions";
 import type { PersonaRow, PrestamoRow, VSaldosPrestamoRow } from "@/lib/database.types";
 
 interface Props {
@@ -71,6 +71,20 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
     }
   }
 
+  async function alternarCongelado() {
+    setGuardando(true);
+    try {
+      const nuevoEstado = prestamo.estado === "CONGELADO" ? "ACTIVO" : "CONGELADO";
+      await cambiarEstadoPrestamo(prestamo.id, nuevoEstado);
+      mostrar(nuevoEstado === "CONGELADO" ? "Préstamo congelado." : "Préstamo reactivado.");
+      router.refresh();
+    } catch (e) {
+      mostrar(e instanceof Error ? e.message : "No se pudo cambiar el estado.", "error");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 gap-2">
@@ -94,6 +108,16 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
           className="rounded-2xl border border-dashed border-borde px-4 py-3 text-sm font-semibold text-primario"
         >
           Definir día de pago
+        </button>
+      )}
+
+      {(prestamo.estado === "ACTIVO" || prestamo.estado === "CONGELADO") && (
+        <button
+          onClick={alternarCongelado}
+          disabled={guardando}
+          className="rounded-2xl border border-dashed border-borde px-4 py-3 text-sm font-semibold text-texto"
+        >
+          {prestamo.estado === "CONGELADO" ? "Reactivar préstamo" : "Congelar préstamo (saldo congelado)"}
         </button>
       )}
 

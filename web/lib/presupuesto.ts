@@ -34,9 +34,13 @@ export function generarCortes(desdeISO: string, hastaISO: string): string[] {
   return cortes;
 }
 
-/** dia 15 = corte de interes; fin de mes = corte de capital. */
-export function esCorteDeInteres(fechaISO: string): boolean {
-  return new Date(`${fechaISO}T00:00:00`).getDate() === 15;
+/**
+ * Ambos cortes (dia 15 y fin de mes) son cortes quincenales de interes: cada
+ * uno cobra la MITAD de la tasa mensual. El fin de mes, ademas, es el unico
+ * corte de capital.
+ */
+export function esCorteDeCapital(fechaISO: string): boolean {
+  return new Date(`${fechaISO}T00:00:00`).getDate() !== 15;
 }
 
 /** Suma `meses` calendario a una fecha ISO (YYYY-MM-DD). */

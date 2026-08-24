@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { Card } from "@/components/ui/Card";
@@ -282,6 +283,11 @@ function PasoQuePaso({ onElegir }: { onElegir: (a: AccionDef) => void }) {
               </button>
             ))}
           </div>
+          {g.id === "OTROS" && (
+            <Link href="/gastos" className="text-sm font-medium text-primario underline">
+              Ver detalle de gastos →
+            </Link>
+          )}
         </div>
       ))}
     </div>
