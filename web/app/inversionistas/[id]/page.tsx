@@ -27,7 +27,8 @@ export default async function InversionDetallePage({ params }: Props) {
 
   const { inversion, persona, saldo, tramos, movimientos } = detalle;
   const tramoVigente = tramos.find((t) => t.vigente_hasta === null);
-  const interesEsteMes = tramoVigente ? tramoVigente.monto * tramoVigente.tasa_mensual : 0;
+  // Cada corte quincenal cobra la mitad de la tasa mensual (igual que Cobro/Pago a inversionistas y Presupuesto vs. real).
+  const interesEsteCorte = tramoVigente ? Math.round(tramoVigente.monto * (tramoVigente.tasa_mensual / 2) * 100) / 100 : 0;
   const periodos = await getPresupuestoInversion(Number(id));
 
   return (
@@ -58,7 +59,7 @@ export default async function InversionDetallePage({ params }: Props) {
         )}
         {tramoVigente && (
           <p className="text-sm text-texto-suave">
-            Interés correspondiente al período: {moneda(interesEsteMes)} (
+            Interés correspondiente al corte: {moneda(interesEsteCorte)} (
             {(tramoVigente.tasa_mensual * 100).toFixed(1)}% mensual)
           </p>
         )}
