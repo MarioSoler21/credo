@@ -517,7 +517,13 @@ export async function getPresupuestoPrestamo(id: number): Promise<PeriodoPresupu
       esFuturo,
       tasaMensual,
       saldoCapitalInicio,
+      // Interes simple, no compuesto: se calcula solo sobre saldoCapitalInicio,
+      // nunca sobre interes atrasado/pendiente. El interes vencido no se
+      // capitaliza ni genera recargo por mora; se queda fijo hasta que se
+      // pague (regla de negocio confirmada).
       interesPresupuestado: Math.round(saldoCapitalInicio * (tasaMensual / 2) * 100) / 100,
+      // plazo_meses es opcional: sin plazo (null) el prestamo es a termino
+      // indefinido y no se espera amortizacion de capital, solo interes.
       capitalPresupuestado:
         esCorteDeCapital(fecha) && prestamo.plazo_meses
           ? Math.round((montoInicial / prestamo.plazo_meses) * 100) / 100

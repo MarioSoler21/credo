@@ -514,3 +514,22 @@ export async function actualizarDiaPago(prestamoId: number, diaPago: number) {
   revalidatePath(`/prestamos/${prestamoId}`);
   return prestamo;
 }
+
+/**
+ * El plazo es opcional: un prestamo sin plazo (null) queda a termino
+ * indefinido, solo con pago periodico de interes (ver getPresupuestoPrestamo).
+ * Esta accion sirve para fijar un plazo especifico en los casos puntuales
+ * que si lo requieran; pasar null para volver a dejarlo indefinido.
+ */
+export async function actualizarPlazo(prestamoId: number, plazoMeses: number | null) {
+  const res = await supabase
+    .from("prestamos")
+    .update({ plazo_meses: plazoMeses })
+    .eq("id", prestamoId)
+    .select()
+    .single();
+  const prestamo = lanzarSiError(res);
+  revalidatePath("/");
+  revalidatePath(`/prestamos/${prestamoId}`);
+  return prestamo;
+}

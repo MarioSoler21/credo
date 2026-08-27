@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { useToast } from "@/components/ui/Toast";
-import { cambiarTasaPrestamo, marcarPrestamoIncobrable, actualizarDiaPago, cambiarEstadoPrestamo } from "@/lib/actions";
+import {
+  cambiarTasaPrestamo,
+  marcarPrestamoIncobrable,
+  actualizarDiaPago,
+  actualizarPlazo,
+  cambiarEstadoPrestamo,
+} from "@/lib/actions";
 import type { PersonaRow, PrestamoRow, VSaldosPrestamoRow } from "@/lib/database.types";
 
 interface Props {
@@ -21,13 +27,14 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
   const router = useRouter();
   const { mostrar } = useToast();
 
-  const [modal, setModal] = useState<"tasa" | "incobrable" | "diaPago" | null>(null);
+  const [modal, setModal] = useState<"tasa" | "incobrable" | "diaPago" | "plazo" | null>(null);
   const [guardando, setGuardando] = useState(false);
 
   const [tasaPorcentaje, setTasaPorcentaje] = useState(tasaVigente ? String(tasaVigente * 100) : "2");
   const [montoPerdida, setMontoPerdida] = useState(saldo.saldo_capital);
   const [textoConfirmacion, setTextoConfirmacion] = useState("");
   const [diaPago, setDiaPago] = useState("");
+  const [plazoMeses, setPlazoMeses] = useState(prestamo.plazo_meses ? String(prestamo.plazo_meses) : "");
 
   async function guardarTasa() {
     setGuardando(true);
@@ -62,6 +69,20 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
     try {
       await actualizarDiaPago(prestamo.id, Number(diaPago));
       mostrar("Día de pago guardado.");
+      setModal(null);
+      router.refresh();
+    } catch (e) {
+      mostrar(e instanceof Error ? e.message : "No se pudo guardar.", "error");
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function guardarPlazo() {
+    setGuardando(true);
+    try {
+      await actualizarPlazo(prestamo.id, plazoMeses.trim() ? Number(plazoMeses) : null);
+      mostrar(plazoMeses.trim() ? "Plazo guardado." : "Préstamo vuelto a plazo indefinido.");
       setModal(null);
       router.refresh();
     } catch (e) {
@@ -111,6 +132,13 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
         </button>
       )}
 
+      <button
+        onClick={() => setModal("plazo")}
+        className="rounded-2xl border border-dashed border-borde px-4 py-3 text-sm font-semibold text-primario"
+      >
+        {prestamo.plazo_meses ? `Plazo: ${prestamo.plazo_meses} mes${prestamo.plazo_meses === 1 ? "" : "es"} (cambiar)` : "Definir plazo (opcional)"}
+      </button>
+
       {(prestamo.estado === "ACTIVO" || prestamo.estado === "CONGELADO") && (
         <button
           onClick={alternarCongelado}
@@ -156,6 +184,27 @@ export function AccionesPrestamo({ prestamo, persona, saldo, tasaVigente }: Prop
           />
         </label>
         <Button ancho="completo" className="mt-4" onClick={guardarDiaPago} disabled={guardando || !diaPago}>
+          {guardando ? "Guardando..." : "Guardar"}
+        </Button>
+      </Modal>
+
+      <Modal abierto={modal === "plazo"} onCerrar={() => setModal(null)} titulo="Plazo del préstamo">
+        <p className="text-sm text-texto-suave">
+          Por defecto un préstamo no tiene plazo fijo: solo se espera el pago periódico de interés. Definí un plazo
+          en meses únicamente si este caso puntual sí lo requiere.
+        </p>
+        <label className="mt-3 flex flex-col gap-1">
+          <span className="text-sm font-medium text-texto-suave">Plazo en meses (dejar vacío para indefinido)</span>
+          <input
+            type="number"
+            min={1}
+            inputMode="numeric"
+            value={plazoMeses}
+            onChange={(e) => setPlazoMeses(e.target.value)}
+            className="w-full rounded-2xl border border-borde bg-superficie px-4 py-3 text-base text-texto outline-none focus:border-primario"
+          />
+        </label>
+        <Button ancho="completo" className="mt-4" onClick={guardarPlazo} disabled={guardando}>
           {guardando ? "Guardando..." : "Guardar"}
         </Button>
       </Modal>

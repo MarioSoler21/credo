@@ -103,15 +103,10 @@ export const ACCIONES: AccionDef[] = [
     signoCaja: 0,
     linea: (m) => `Interés pendiente de pago: ${m}`,
   },
-  {
-    id: "PAGUE_DIVIDENDO",
-    etiqueta: "Pago de dividendo",
-    grupo: "INVERSIONISTAS",
-    codigo: "DIVIDENDO_PAGADO_INV",
-    contexto: "inversion",
-    signoCaja: -1,
-    linea: (m) => `Dividendo pagado: ${m}`,
-  },
+  // Nota: un inversionista solo recibe interes por el capital que presto
+  // (arriba) o la devolucion de ese capital. No existe "dividendo" como pago
+  // a inversionista -- ver RETIRO_UTILIDADES en el grupo OTROS para el retiro
+  // personal del dueno del negocio.
   {
     id: "BANCO_PAGO_INTERES",
     etiqueta: "Interés bancario recibido",
@@ -131,6 +126,16 @@ export const ACCIONES: AccionDef[] = [
     signoCaja: -1,
     linea: (m) => `Gasto registrado: ${m}`,
     categoriasSugeridas: ["Gastos de colocacion", "Tramite permiso de operacion"],
+  },
+  {
+    id: "RETIRE_UTILIDADES",
+    etiqueta: "Retiro de utilidades",
+    grupo: "OTROS",
+    codigo: "RETIRO_UTILIDADES",
+    contexto: "categoria",
+    signoCaja: -1,
+    linea: (m) => `Retiro de utilidades: ${m}`,
+    categoriasSugeridas: ["Retiro de utilidades"],
   },
 ];
 
@@ -176,7 +181,8 @@ const ETIQUETA_CODIGO_CAJA: Record<string, string> = {
   DEVOLUCION_INVERSION: "Devoluciones a inversionistas",
   INTERES_PAGADO_INV: "Interés pagado a inversionistas",
   INTERES_PEND_INV: "Interés pendiente a inversionista",
-  DIVIDENDO_PAGADO_INV: "Dividendo pagado a inversionistas",
+  DIVIDENDO_PAGADO_INV: "Dividendo pagado a inversionistas", // codigo historico, ya no se genera desde la app
+  RETIRO_UTILIDADES: "Retiro de utilidades",
   INTERES_BANCARIO: "Interés del banco",
   GASTO_OPERATIVO: "Gastos operativos",
   OTRO_EGRESO: "Otros egresos",
