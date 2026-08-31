@@ -163,6 +163,7 @@ export type ConceptoResultado =
   | "INTERES_BANCARIO"
   | "INTERES_INVERSIONISTAS"
   | "GASTOS"
+  | "RETIRO_UTILIDADES"
   | "RESULTADO";
 
 export interface VResultadoDetalleRow {

@@ -164,6 +164,7 @@ const ETIQUETA_CONCEPTO: Record<ConceptoResultado, string> = {
   INTERES_BANCARIO: "Interés bancario",
   INTERES_INVERSIONISTAS: "Interés a inversionistas",
   GASTOS: "Gastos",
+  RETIRO_UTILIDADES: "Retiro de utilidades",
   RESULTADO: "Resultado",
 };
 
